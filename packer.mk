@@ -12,7 +12,7 @@ ifeq (${MODE},gen2Mode)
 	@echo "${MODE}: Convert os disk snapshot to SIG"
 	@az login --service-principal -u ${CLIENT_ID} -p ${CLIENT_SECRET} --tenant ${TENANT_ID}
 	@az account set -s ${SUBSCRIPTION_ID}
-	@echo "CREATE_TIME=${CREATE_TIME}"
+	@echo "SIG_IMAGE_VERSION=${SIG_IMAGE_VERSION}"
 	@./vhdbuilder/packer/convert-osdisk-snapshot-to-sig.sh
 else ifeq (${MODE},sigMode)
 	$(error sigMode not supported yet)
