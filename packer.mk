@@ -83,6 +83,3 @@ windows-vhd-publishing-info: az-login
 
 test-building-vhd: az-login
 	@./vhdbuilder/packer/test/run-test.sh
-
-convert-os-disk-snapshot-to-sig: az-login
-	@./vhdbuilder/packer/convert-osdisk-snapshot-to-sig.sh
