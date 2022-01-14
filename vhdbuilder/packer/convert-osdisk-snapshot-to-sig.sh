@@ -2,9 +2,9 @@
 
 required_env_vars=(
     "SUBSCRIPTION_ID"
-    "RESOURCE_GROUP_NAME"
+    "AZURE_RESOURCE_GROUP_NAME"
     "CREATE_TIME"
-    "LOCATION"
+    "AZURE_LOCATION"
     "SIG_IMAGE_NAME"
     "ARM64_OS_DISK_SNAPSHOT_NAME"
 )
@@ -17,8 +17,8 @@ do
     fi
 done
 
-disk_snapshot_id="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Compute/snapshots/${ARM64_OS_DISK_SNAPSHOT_NAME}"
+disk_snapshot_id="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP_NAME}/providers/Microsoft.Compute/snapshots/${ARM64_OS_DISK_SNAPSHOT_NAME}"
 
-az sig image-version create --location $LOCATION --resource-group ${RESOURCE_GROUP_NAME} --gallery-name PackerSigGalleryEastUS \
+az sig image-version create --location $AZURE_LOCATION --resource-group ${AZURE_RESOURCE_GROUP_NAME} --gallery-name PackerSigGalleryEastUS \
      --gallery-image-definition ${SIG_IMAGE_NAME} --gallery-image-version 1.0.${CREATE_TIME} \
      --os-snapshot ${disk_snapshot_id}
