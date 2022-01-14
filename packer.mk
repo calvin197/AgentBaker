@@ -10,7 +10,7 @@ ifeq (${MODE},gen2Mode)
 	@chmod a+x ./vhdbuilder/packer/packer
 	@./vhdbuilder/packer/packer build -var-file=vhdbuilder/packer/settings.json vhdbuilder/packer/vhd-image-builder-arm64-gen2.json
 	@echo "${MODE}: Convert os disk snapshot to SIG"
-	az login
+	az-login
 	@./vhdbuilder/packer/convert-osdisk-snapshot-to-sig.sh
 else ifeq (${MODE},sigMode)
 	$(error sigMode not supported yet)
