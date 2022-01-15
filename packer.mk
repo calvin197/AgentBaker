@@ -10,11 +10,6 @@ ifeq (${MODE},gen2Mode)
 	@chmod a+x ./vhdbuilder/packer/packer
 	@./vhdbuilder/packer/packer build -var-file=vhdbuilder/packer/settings.json vhdbuilder/packer/vhd-image-builder-arm64-gen2.json
 	@echo "${MODE}: Convert os disk snapshot to SIG"
-	cat ./vhdbuilder/packer/settings.json
-	ARM64_OS_DISK_SNAPSHOT_NAME="$(cat ./vhdbuilder/packer/settings.json | grep "arm64_os_disk_snapshot_name" | awk -F':' '{print $2}' | awk -F'"' '{print $2}')"
-	CREATE_TIME="$(cat ./vhdbuilder/packer/settings.json | grep "create_time" | awk -F':' '{print $2}' | awk -F'"' '{print $2}')"
-	@echo "CREATE_TIME=${CREATE_TIME}"
-	@echo "ARM64_OS_DISK_SNAPSHOT_NAME=${ARM64_OS_DISK_SNAPSHOT_NAME}"
 	@./vhdbuilder/packer/convert-osdisk-snapshot-to-sig.sh
 else ifeq (${MODE},sigMode)
 	$(error sigMode not supported yet)
