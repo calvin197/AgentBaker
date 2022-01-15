@@ -33,7 +33,6 @@ if [[ $OS == $MARINER_OS_NAME ]]; then
 fi
 
 copyPackerFiles
-exit 0
 
 echo ""
 echo "Components downloaded in this VHD build (some of the below components might get deleted during cluster provisioning if they are not needed):" >> ${VHD_LOGS_FILEPATH}
