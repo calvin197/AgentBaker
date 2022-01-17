@@ -11,7 +11,7 @@ if (-not ($validContainerRuntimes -contains $containerRuntime)) {
 }
 
 $global:windowsSKU = $env:WindowsSKU
-$validSKU = @("2019", "2019-containerd")
+$validSKU = @("2019", "2019-containerd", "2022-containerd")
 if (-not ($validSKU -contains $windowsSKU)) {
     throw "Unsupported windows image SKU: $windowsSKU"
 }
@@ -81,6 +81,29 @@ switch ($windowsSKU) {
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.4", # for k8s 1.22.x
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.23.1", # for k8s 1.23.x
             "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021")
+    }
+    "2022-containerd" {
+        $global:imagesToPull = @(
+            "mcr.microsoft.com/windows/servercore:ltsc2022",
+            "mcr.microsoft.com/windows/nanoserver:ltsc2022",
+            "mcr.microsoft.com/oss/kubernetes/pause:3.4.1", # TODO
+            "mcr.microsoft.com/oss/kubernetes/pause:3.6-hotfix.20220114", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.4.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.5.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.3.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.4.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.8.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.10.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.7.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.9.0", # TODO
+            "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v1.0.0 ",
+            "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:v1.0.0",
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.6.0", # for k8s 1.19.x
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.7.9", # for k8s 1.20.x
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.0.6", # for k8s 1.21.x
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.2", # for k8s 1.22.x
+            "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021" # TODO
+        )
     }
     default {
         throw "No valid windows SKU is specified $windowsSKU"
