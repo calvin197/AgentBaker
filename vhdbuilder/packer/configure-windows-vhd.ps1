@@ -6,6 +6,8 @@
         This script is used by packer to produce Windows AKS images.
 #>
 
+Set-PSDebug -Trace 1
+
 $ErrorActionPreference = "Stop"
 
 . c:\windows-vhd-configuration.ps1

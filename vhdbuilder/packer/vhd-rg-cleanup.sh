@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 ####################################################
 
 if [ -z "$SERVICE_PRINCIPAL_CLIENT_ID" ]; then

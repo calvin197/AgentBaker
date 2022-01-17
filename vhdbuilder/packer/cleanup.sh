@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+set -x
+
 required_env_vars=(
   "CLIENT_ID"
   "CLIENT_SECRET"

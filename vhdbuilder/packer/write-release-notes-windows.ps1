@@ -6,6 +6,8 @@
         Produces a release notes file for a Windows VHD
 #>
 
+Set-PSDebug -Trace 1
+
 $ErrorActionPreference = "Stop"
 
 $releaseNotesFilePath = "c:\release-notes.txt"

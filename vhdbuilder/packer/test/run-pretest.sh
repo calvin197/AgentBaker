@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
+
 
 components=$(jq .ContainerImages[] --monochrome-output --compact-output < vhdbuilder/packer/components.json)
 for component in ${components[*]}; do
