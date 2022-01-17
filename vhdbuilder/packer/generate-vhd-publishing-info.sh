@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+set -x
+
 required_env_vars=(
     "CLASSIC_SA_CONNECTION_STRING" # This can be replaced with sas_token+account_name
     "STORAGE_ACCT_BLOB_URL"

@@ -66,6 +66,9 @@ param(
     [string]
     $UserAssignedClientID
 )
+
+Set-PSDebug -Trace 1
+
 # Do not parse the start time from $LogFile to simplify the logic
 $StartTime=Get-Date
 $global:ExitCode=0
