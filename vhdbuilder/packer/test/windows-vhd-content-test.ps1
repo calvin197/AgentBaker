@@ -126,6 +126,7 @@ function Test-ImagesPulled {
         # 2. As select-string with nomatch pattern returns additional line breaks, qurying MatchInfo's Line property keeps
         #    only image reference as a workaround
         $pulledImages = (ctr.exe -n k8s.io image ls -q | Select-String -notmatch "sha256:.*" | % { $_.Line } )
+        # TODO 2022
     }
     elseif ($containerRuntime -eq 'docker') {
         Start-Service docker

@@ -5,6 +5,7 @@ parameters:
 
 steps:
   - bash: |
+      set -x && \
       if [[ -n ${SIG_GALLERY_NAME} && -n ${SIG_IMAGE_NAME} && -n ${SIG_IMAGE_VERSION} ]]; then m="sigMode"; else m="default"; fi && \
       echo "Set build mode to $m" && \
       echo "##vso[task.setvariable variable=MODE]$m" && \
@@ -17,6 +18,7 @@ steps:
       echo "##vso[task.setvariable variable=BUILD_DATE]$BUILD_DATE"
     displayName: Get Build Mode
   - script: |
+      set -x && \
       echo MODE=$(MODE) && \
       docker run --rm \
       -v ${PWD}:/go/src/github.com/Azure/AgentBaker \
@@ -44,6 +46,7 @@ steps:
       ${CONTAINER_IMAGE} make -f packer.mk run-packer-windows
     displayName: Building windows VHD
   - script: |
+      set -x && \
       OS_DISK_URI="$(cat packer-output | grep "OSDiskUri:" | cut -d " " -f 2)" && \
       docker run --rm \
       -v ${PWD}:/go/src/github.com/Azure/AgentBaker \
@@ -70,6 +73,7 @@ steps:
         artifactName: 'vhd-release-notes-${{ parameters.artifactName }}'
         targetPath: 'release-notes.txt'
   - script: |
+      set -x && \
       echo MODE=$(MODE) && \
       OS_DISK_SAS="$(cat packer-output | grep "OSDiskUriReadOnlySas:" | cut -d " " -f 2)" && \
       VHD_NAME="$(echo $OS_DISK_SAS | cut -d "/" -f 8 | cut -d "?" -f 1)" && \
@@ -88,6 +92,7 @@ steps:
     displayName: Copying resource to Classic Storage Account
     condition: and(succeeded(), eq(variables.DRY_RUN, 'False'), eq(variables['MODE'], 'default'))
   - bash: |
+      set -x && \
       echo MODE=$(MODE) && \
       PKR_RG_NAME="$(cat packer-output | grep "ResourceGroupName" | cut -d "'" -f 2 | head -1)" && \
       SA_NAME="$(cat packer-output | grep "storage name:" | cut -d " " -f 3)" && \
@@ -107,6 +112,7 @@ steps:
     displayName: Clean Up Packer Generated Resources
     condition: always()
   - bash: |
+      set -x && \
       echo MODE=$(MODE) && \
       OS_DISK_SAS="$(cat packer-output | grep "OSDiskUriReadOnlySas:" | cut -d " " -f 2)" && \
       VHD_NAME="$(echo $OS_DISK_SAS | cut -d "/" -f 8 | cut -d "?" -f 1)" && \
