@@ -69,7 +69,10 @@ function Retry-Command {
 
         # Throw an error after $Maximum unsuccessful invocations. Doesn't need
         # a condition, since the function returns upon successful invocation.
-        throw 'All retries failed. $ErrorMessage'
+
+        # throw 'All retries failed. $ErrorMessage'
+        Write-Log 'All retries failed. $ErrorMessage'
+        Write-Log 'All retries failed. continue'
     }
 }
 

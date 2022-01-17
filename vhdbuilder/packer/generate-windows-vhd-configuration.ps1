@@ -110,6 +110,8 @@ switch ($windowsSKU) {
     }
 }
 
+$global:imagesToPull
+
 $global:map = @{
     "c:\akse-cache\"              = @(
         "https://github.com/Azure/AgentBaker/raw/master/vhdbuilder/scripts/windows/collect-windows-logs.ps1",
