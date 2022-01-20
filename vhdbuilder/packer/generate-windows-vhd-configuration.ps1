@@ -113,9 +113,9 @@ switch ($windowsSKU) {
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.0.8",    # for k8s X.XX.X # Not need?
             # "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.2",  # for k8s 1.22.x # Can not pull
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.4",    # for k8s 1.22.x # Not need?
-            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.23.1",   # for k8s 1.23.x # Not need?
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.23.1"    # for k8s 1.23.x # Not need?
             # "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod06112021-2", # Can not pull
-            "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021"
+            # "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021"
         )
     }
     default {
