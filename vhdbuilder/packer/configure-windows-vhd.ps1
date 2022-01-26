@@ -307,7 +307,9 @@ try{
             #if ($env:WindowsSKU -nomatch "2022") {
             Install-OpenSSH
             #}
-            Update-WindowsFeatures
+            if ($env:WindowsSKU -nomatch "2022") {
+                Update-WindowsFeatures
+            }
         }
         "2" {
             Write-Log "Performing actions for provisioning phase 2 for container runtime '$containerRuntime'"
