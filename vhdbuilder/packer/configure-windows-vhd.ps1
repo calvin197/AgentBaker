@@ -307,7 +307,7 @@ try{
             #if ($env:WindowsSKU -nomatch "2022") {
             Install-OpenSSH
             #}
-            if ($env:WindowsSKU -nomatch "2022") {
+            if ($env:WindowsSKU -imatch "2022") {
                 Update-WindowsFeatures
             }
         }
