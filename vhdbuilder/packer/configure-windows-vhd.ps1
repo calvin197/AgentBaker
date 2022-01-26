@@ -303,13 +303,15 @@ try{
             Disable-WindowsUpdates
             Set-WinRmServiceDelayedStart
             Update-DefenderSignatures
-            Install-WindowsPatches
+            if ($env:WindowsSKU -nomatch "2022") {
+                Install-WindowsPatches
+            }
             #if ($env:WindowsSKU -nomatch "2022") {
             Install-OpenSSH
             #}
-            if ($env:WindowsSKU -imatch "2022") {
-                Update-WindowsFeatures
-            }
+            #if ($env:WindowsSKU -imatch "2022") {
+            Update-WindowsFeatures
+            #}
         }
         "2" {
             Write-Log "Performing actions for provisioning phase 2 for container runtime '$containerRuntime'"
