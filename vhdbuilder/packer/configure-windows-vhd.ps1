@@ -304,7 +304,8 @@ try{
             Set-WinRmServiceDelayedStart
             Update-DefenderSignatures
             if ($env:WindowsSKU -imatch "2022") {
-                Install-WindowsPatches
+                Write-Log "$env:WindowsSKU"
+                # Install-WindowsPatches
             }
             #if ($env:WindowsSKU -imatch "2022") {
             Install-OpenSSH
