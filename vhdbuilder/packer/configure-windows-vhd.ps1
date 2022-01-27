@@ -303,10 +303,11 @@ try{
             Disable-WindowsUpdates
             Set-WinRmServiceDelayedStart
             Update-DefenderSignatures
-            #if ($env:WindowsSKU -imatch "2022") { # string not contains
             Write-Output "$env:WindowsSKU"
             Install-WindowsPatches
-            Install-OpenSSH
+            if ($env:WindowsSKU -imatch "2022") {
+                Install-OpenSSH
+            }
             Update-WindowsFeatures
         }
         "2" {
