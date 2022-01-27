@@ -22,8 +22,12 @@ if (-not ($validSKU -contains $windowsSKU)) {
 # IMPORTANT NOTES: Please check the KB article before getting the KB links. For example, for 2021-4C:
 # You must install the April 22, 2021 servicing stack update (SSU) (KB5001407) before installing the latest cumulative update (LCU).
 # SSUs improve the reliability of the update process to mitigate potential issues while installing the LCU.
-$global:patchUrls = @("http://download.windowsupdate.com/d/msdownload/update/software/updt/2022/01/windows10.0-kb5010791-x64_466ad2172d2cc77b2125420c26b7f9ac00e197f4.msu")
-$global:patchIDs = @("KB5010791")
+$global:patchUrls2019 = @("http://download.windowsupdate.com/d/msdownload/update/software/updt/2022/01/windows10.0-kb5010791-x64_466ad2172d2cc77b2125420c26b7f9ac00e197f4.msu")
+$global:patchIDs2019 = @("KB5010791")
+
+# Windows Server 2022 patch
+$global:patchUrls2022 = @("")
+$global:patchIDs2022 = @("")
 
 # defaultContainerdPackageUrl refers to the latest containerd package used to pull and cache container images
 $global:defaultContainerdPackageUrl = "https://acs-mirror.azureedge.net/containerd/windows/v0.0.43/binaries/containerd-v0.0.43-windows-amd64.tar.gz"
@@ -84,39 +88,17 @@ switch ($windowsSKU) {
     }
     "2022-containerd" {
         $global:imagesToPull = @(
-            "mcr.microsoft.com/windows/server:ltsc2022",
             "mcr.microsoft.com/windows/servercore:ltsc2022",
-            # "mcr.microsoft.com/windows/nanoserver:2022", # Can not pull
-            "mcr.microsoft.com/windows/nanoserver:ltsc2022", # Not need?
-            # "mcr.microsoft.com/oss/kubernetes/pause:3.4.1", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes/pause:3.6-hotfix.20220114", # Not need?
-            # "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.3.0", # Can not pull
-            # "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.4.0", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.5.0", # Not need?
-            # "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.2.0", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.3.0",
-            "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.4.0", # Not need?
-            # "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.7.0", # Can not pull
-            # "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.8.0", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.10.0", # Not need?
-            # "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.6.0", # Can not pull
-            # "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.7.0", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.9.0", # Not need?
-            # "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:0.0.14", # Can not pull
-            "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:v1.0.0", # Email
-            # "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v0.0.21", # Can not pull
-            "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v1.0.0", # Email
-            # "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.6.0",  # for k8s 1.19.x # Can not pull
-            # "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.7.9",  # for k8s 1.20.x # Can not pull
-            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.7.11",   # for k8s 1.20.x # Not need?
-            # "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.0.6",  # for k8s 1.21.x # Can not pull
-            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.0.8",    # for k8s X.XX.X # Not need?
-            # "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.2",  # for k8s 1.22.x # Can not pull
-            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.1.4",    # for k8s 1.22.x # Not need?
-            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.23.1"    # for k8s 1.23.x # Not need?
-            # "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod06112021-2", # Can not pull
-            # "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021"
-        )
+            "mcr.microsoft.com/windows/nanoserver:ltsc2022",
+            "mcr.microsoft.com/oss/kubernetes/pause:3.6-hotfix.20220114",
+            "mcr.microsoft.com/oss/kubernetes-csi/livenessprobe:v2.5.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.4.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.10.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.9.0",
+            "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:v1.0.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v1.0.0",
+            "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v1.23.1", # for k8s 1.23.x
+            # "mcr.microsoft.com/azuremonitor/containerinsights/ciprod:win-ciprod10132021")
     }
     default {
         throw "No valid windows SKU is specified $windowsSKU"
