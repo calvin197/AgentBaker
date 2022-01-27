@@ -26,8 +26,8 @@ $global:patchUrls2019 = @("http://download.windowsupdate.com/d/msdownload/update
 $global:patchIDs2019 = @("KB5010791")
 
 # Windows Server 2022 patch
-$global:patchUrls2022 = @("")
-$global:patchIDs2022 = @("")
+$global:patchUrls2022 = @()
+$global:patchIDs2022 = @()
 
 # defaultContainerdPackageUrl refers to the latest containerd package used to pull and cache container images
 $global:defaultContainerdPackageUrl = "https://acs-mirror.azureedge.net/containerd/windows/v0.0.43/binaries/containerd-v0.0.43-windows-amd64.tar.gz"
