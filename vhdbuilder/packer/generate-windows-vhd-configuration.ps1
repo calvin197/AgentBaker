@@ -41,8 +41,8 @@ switch ($windowsSKU) {
             "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.4.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.8.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.10.0",
-            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.7.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.9.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.10.0",
             "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v0.0.21",
             "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:0.0.14",
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.6.0", # for k8s 1.19.x
@@ -67,8 +67,8 @@ switch ($windowsSKU) {
             "mcr.microsoft.com/oss/kubernetes-csi/csi-node-driver-registrar:v2.4.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.8.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azuredisk-csi:v1.10.0",
-            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.7.0",
             "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.9.0",
+            "mcr.microsoft.com/oss/kubernetes-csi/azurefile-csi:v1.10.0",
             "mcr.microsoft.com/oss/kubernetes-csi/secrets-store/driver:v0.0.21",
             "mcr.microsoft.com/oss/azure/secrets-store/provider-azure:0.0.14",
             "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v0.7.9", # for k8s 1.20.x
@@ -102,6 +102,7 @@ $global:map = @{
         "https://github.com/Microsoft/SDN/raw/master/Kubernetes/windows/hns.psm1",
         "https://globalcdn.nuget.org/packages/microsoft.applicationinsights.2.11.0.nupkg",
         "https://acs-mirror.azureedge.net/aks-engine/windows/provisioning/signedscripts-v0.0.15.zip",
+        "https://acs-mirror.azureedge.net/aks-engine/windows/provisioning/signedscripts-v0.0.16.zip",
         "https://acs-mirror.azureedge.net/ccgakvplugin/v1.1.3/binaries/windows-gmsa-ccgakvplugin-v1.1.3.zip",
         "https://acs-mirror.azureedge.net/aks/windows/cse/aks-windows-cse-scripts-v0.0.4.zip"
     );
@@ -152,8 +153,7 @@ $global:map = @{
     );
     "c:\akse-cache\calico\" = @(
         "https://acs-mirror.azureedge.net/calico-node/v3.20.0/binaries/calico-windows-v3.20.0.zip",
-        "https://acs-mirror.azureedge.net/calico-node/v3.21.0/binaries/calico-windows-v3.21.0.zip",
-        "https://acs-mirror.azureedge.net/calico-node/v3.21.2/binaries/calico-windows-v3.21.2.zip"
+        "https://acs-mirror.azureedge.net/calico-node/v3.21.4/binaries/calico-windows-v3.21.4.zip"
     )
 }
 '@
