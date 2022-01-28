@@ -204,14 +204,6 @@ function Install-OpenSSH {
 }
 
 function Install-WindowsPatches {
-    $patchUrls = @()
-    if ($windowsSKU -in '2019', '2019-containerd') {
-        $patchUrls = $patchUrls2019
-    } elseif ($windowsSKU -in '2022-containerd') {
-        $patchUrls = $patchUrls2022
-    }
-    Write-Output $windowsSKU
-    Write-Output $patchUrls
     foreach ($patchUrl in $patchUrls) {
         $pathOnly = $patchUrl.Split("?")[0]
         $fileName = Split-Path $pathOnly -Leaf
