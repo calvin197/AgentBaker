@@ -41,7 +41,7 @@ Log ""
 
 Log "Installed Features"
 if ($systemInfo.InstallationType -ne 'client') {
-    Log (Get-WindowsFeature | Where-Object Installed)
+    # Log (Get-WindowsFeature | Where-Object Installed)
 }
 else {
     Log "`t<Cannot enumerate installed features on client skus>"
