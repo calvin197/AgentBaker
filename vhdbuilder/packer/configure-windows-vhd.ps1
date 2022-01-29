@@ -304,7 +304,7 @@ try{
             Set-WinRmServiceDelayedStart
             Update-DefenderSignatures
             Install-WindowsPatches
-            # Install-OpenSSH # has bug #TODO
+            Install-OpenSSH
             Update-WindowsFeatures
         }
         "2" {
