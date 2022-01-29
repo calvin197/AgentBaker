@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	AzurePublicCloudSigTenantID     string = "33e01921-4d64-4f8c-a055-5bdaffd5e33d" // AME Tenant
-	AzurePublicCloudSigSubscription string = "109a5e88-712a-48ae-9078-9ca8b3c81345" // AKS VHD
+	// AzurePublicCloudSigTenantID     string = "33e01921-4d64-4f8c-a055-5bdaffd5e33d" // AME Tenant
+	// AzurePublicCloudSigSubscription string = "109a5e88-712a-48ae-9078-9ca8b3c81345" // AKS VHD
+	AzurePublicCloudSigTenantID     string = "72f988bf-86f1-41af-91ab-2d7cd011db47" // Microsoft Azure Tenant
+	AzurePublicCloudSigSubscription string = "8ecadfc9-d1a3-4ea4-b844-0d9f87e4d7c8" // Azure Container Service - Test
 )
 
 //SIGAzureEnvironmentSpecConfig is the overall configuration differences in different cloud environments.
@@ -186,6 +188,7 @@ func (template SigImageConfigTemplate) WithOptions(options ...SigImageConfigOpt)
 var AvailableWindowsSIGDistros []Distro = []Distro{
 	AKSWindows2019,
 	AKSWindows2019Containerd,
+	AKSWindows2022Containerd,
 	CustomizedWindowsOSImage,
 }
 
@@ -195,8 +198,9 @@ var AvailableWindowsPIRDistros []Distro = []Distro{
 
 // SIG const
 const (
-	AKSWindowsGalleryName      string = "AKSWindows"
-	AKSWindowsResourceGroup    string = "AKS-Windows"
+	AKSWindowsGalleryName string = "AKSWindows"
+	//AKSWindowsResourceGroup    string = "AKS-Windows"
+	AKSWindowsResourceGroup    string = "akswinvhdbuilderrg"
 	AKSUbuntuGalleryName       string = "AKSUbuntu"
 	AKSUbuntuResourceGroup     string = "AKS-Ubuntu"
 	AKSCBLMarinerGalleryName   string = "AKSCBLMariner"
@@ -204,8 +208,10 @@ const (
 )
 
 const (
-	LinuxSIGImageVersion   string = "2022.01.24"
-	WindowsSIGImageVersion string = "17763.2366.220117"
+	LinuxSIGImageVersion       string = "2022.01.24"
+	WindowsSIGImageVersion     string = "17763.2366.220117"
+	Windows2019SIGImageVersion string = "17763.2366.220117"
+	Windows2022SIGImageVersion string = "20348.473.22012801"
 	// will not do weekly vhd release as amd64 when ARM64 Compute/AKS is still under development
 	Arm64LinuxSIGImageVersion string = "2022.01.22"
 )
@@ -320,13 +326,19 @@ var (
 		ResourceGroup: AKSWindowsResourceGroup,
 		Gallery:       AKSWindowsGalleryName,
 		Definition:    "windows-2019",
-		Version:       WindowsSIGImageVersion,
+		Version:       Windows2019SIGImageVersion,
 	}
 	SIGWindows2019ContainerdImageConfigTemplate = SigImageConfigTemplate{
 		ResourceGroup: AKSWindowsResourceGroup,
 		Gallery:       AKSWindowsGalleryName,
 		Definition:    "windows-2019-containerd",
-		Version:       WindowsSIGImageVersion,
+		Version:       Windows2019SIGImageVersion,
+	}
+	SIGWindows2022ContainerdImageConfigTemplate = SigImageConfigTemplate{
+		ResourceGroup: AKSWindowsResourceGroup,
+		Gallery:       AKSWindowsGalleryName,
+		Definition:    "windows-2022-containerd",
+		Version:       Windows2022SIGImageVersion,
 	}
 )
 
@@ -358,6 +370,7 @@ func getSigWindowsImageConfigMapWithOpts(opts ...SigImageConfigOpt) map[Distro]S
 	return map[Distro]SigImageConfig{
 		AKSWindows2019:           SIGWindows2019ImageConfigTemplate.WithOptions(opts...),
 		AKSWindows2019Containerd: SIGWindows2019ContainerdImageConfigTemplate.WithOptions(opts...),
+		AKSWindows2022Containerd: SIGWindows2022ContainerdImageConfigTemplate.WithOptions(opts...),
 	}
 }
 
