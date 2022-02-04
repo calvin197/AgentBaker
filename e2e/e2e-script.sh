@@ -32,14 +32,29 @@ az group create -l $LOCATION -n $RESOURCE_GROUP_NAME --subscription $SUBSCRIPTIO
 rgEndTime=$(date +%s)
 log "Created resource group in $((rgEndTime-rgStartTime)) seconds"
 
-# Create the AKS cluster and get the kubeconfig
+# Check if there exists a cluster in the RG. If yes, check if the MC_RG associated with it still exists.
+# MC_RG gets deleted due to ACS-Test Garbage Collection but the cluster hangs around
 out=$(az aks list -g $RESOURCE_GROUP_NAME -ojson | jq '.[].name')
+if [ -n "$out" ]; then
+    MC_RG_NAME=$(az aks show -n $CLUSTER_NAME -g $RESOURCE_GROUP_NAME | jq -r '.nodeResourceGroup')
+    exists=$(az group exists -n $MC_RG_NAME)
+    if [ $exists = "false" ]; then
+        log "Deleting cluster"
+        clusterDeleteStartTime=$(date +%s)
+        az aks delete -n $CLUSTER_NAME -g $RESOURCE_GROUP_NAME --yes
+        clusterDeleteEndTime=$(date +%s)
+        log "Deleted cluster in $((clusterDeleteEndTime-clusterDeleteStartTime)) seconds"
+        out=""
+    fi
+fi
+
+# Create the AKS cluster and get the kubeconfig
 if [ -z "$out" ]; then
     log "Creating cluster"
-    clusterStartTime=$(date +%s)
+    clusterCreateStartTime=$(date +%s)
     az aks create -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME --node-count 1 --generate-ssh-keys -ojson
-    clusterEndTime=$(date +%s)
-    log "Created cluster in $((clusterEndTime-clusterStartTime)) seconds"
+    clusterCreateEndTime=$(date +%s)
+    log "Created cluster in $((clusterCreateEndTime-clusterCreateStartTime)) seconds"
 fi
 
 az aks get-credentials -g $RESOURCE_GROUP_NAME -n $CLUSTER_NAME --file kubeconfig --overwrite-existing
@@ -101,7 +116,7 @@ fi
 # TODO 3: Discuss about the --image version, probably go with aks-ubuntu-1804-gen2-2021-q2:latest
 #       However, how to incorporate chaning quarters?
 log "Creating VMSS"
-VMSS_NAME="$(mktemp --dry-run abtest-XXXXXXX | tr '[:upper:]' '[:lower:]')"
+VMSS_NAME="$(mktemp -u abtest-XXXXXXX | tr '[:upper:]' '[:lower:]')"
 vmssStartTime=$(date +%s)
 az vmss create -n ${VMSS_NAME} \
     -g $MC_RESOURCE_GROUP_NAME \
@@ -158,7 +173,7 @@ for i in $(seq 1 10); do
     # shellcheck disable=SC2143
     if [ -z "$(kubectl get nodes | grep $vmInstanceName)" ]; then
         log "retrying attempt $i"
-        sleep 10s
+        sleep 10
         continue
     fi
     break;
@@ -166,32 +181,40 @@ done
 waitForNodeEndTime=$(date +%s)
 log "Waited $((waitForNodeEndTime-waitForNodeStartTime)) seconds for node to join"
 
-trap 'az vmss delete -g $MC_RESOURCE_GROUP_NAME -n $VMSS_NAME --no-wait' EXIT
-
+FAILED=0
 # Check if the node joined the cluster
 if [[ "$retval" -eq 0 ]]; then
     ok "Test succeeded, node joined the cluster"
     kubectl get nodes -o wide | grep $vmInstanceName
 else
     err "Node did not join cluster"
-    INSTANCE_ID="$(az vmss list-instances --name $VMSS_NAME -g $MC_RESOURCE_GROUP_NAME | jq -r '.[0].instanceId')"
-    PRIVATE_IP="$(az vmss nic list-vm-nics --vmss-name $VMSS_NAME -g $MC_RESOURCE_GROUP_NAME --instance-id $INSTANCE_ID | jq -r .[0].ipConfigurations[0].privateIpAddress)"
-    SSH_KEY=$(cat ~/.ssh/id_rsa)
-    SSH_OPTS="-o PasswordAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5"
-    SSH_CMD="echo '$SSH_KEY' > sshkey && chmod 0600 sshkey && ssh -i sshkey $SSH_OPTS azureuser@$PRIVATE_IP"
-    exec_on_host "$SSH_CMD cat /var/log/azure/cluster-provision.log" cluster-provision.log
-    exec_on_host "$SSH_CMD systemctl status kubelet" kubelet-status
-    exec_on_host "$SSH_CMD journalctl -u kubelet -r | head -n 500" kubelet.log
+    FAILED=1
+fi
 
-    cat cluster-provision.log
-    cat kubelet.log
-    cat kubelet-status
+mkdir -p logs
+INSTANCE_ID="$(az vmss list-instances --name $VMSS_NAME -g $MC_RESOURCE_GROUP_NAME | jq -r '.[0].instanceId')"
+PRIVATE_IP="$(az vmss nic list-vm-nics --vmss-name $VMSS_NAME -g $MC_RESOURCE_GROUP_NAME --instance-id $INSTANCE_ID | jq -r .[0].ipConfigurations[0].privateIpAddress)"
+SSH_KEY=$(cat ~/.ssh/id_rsa)
+SSH_OPTS="-o PasswordAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5"
+SSH_CMD="echo '$SSH_KEY' > sshkey && chmod 0600 sshkey && ssh -i sshkey $SSH_OPTS azureuser@$PRIVATE_IP sudo"
+exec_on_host "$SSH_CMD cat /var/log/azure/cluster-provision.log" logs/cluster-provision.log
+exec_on_host "$SSH_CMD systemctl status kubelet" logs/kubelet-status.txt
+exec_on_host "$SSH_CMD journalctl -u kubelet -r | head -n 500" logs/kubelet.log
+
+# useful for validating some stuff even on success
+cat logs/cluster-provision.log
+
+if [ "$FAILED" == "1" ]; then
+    echo "node join failed, dumping logs for debug"
+    head -n 500 logs/kubelet.log
+    cat logs/kubelet-status.txt
     exit 1
 fi
 
 # Run a nginx pod on the node to check if pod runs
+podName=$(mktemp -u podName-XXXXXXX | tr '[:upper:]' '[:lower:]')
+export podName
 envsubst < pod-nginx-template.yaml > pod-nginx.yaml
-kubectl delete -f pod-nginx.yaml
 sleep 5
 kubectl apply -f pod-nginx.yaml
 
@@ -199,12 +222,12 @@ kubectl apply -f pod-nginx.yaml
 waitForPodStartTime=$(date +%s)
 for i in $(seq 1 10); do
     set +e
-    kubectl get pods -o wide | grep -q 'Running'
+    kubectl get pods -o wide | grep $podName | grep 'Running'
     retval=$?
     set -e
     if [ "$retval" -ne 0 ]; then
         log "retrying attempt $i"
-        sleep 10s
+        sleep 10
         continue
     fi
     break;
@@ -218,6 +241,14 @@ else
     err "Pod pending/not running"
     exit 1
 fi
+
+waitForDeleteStartTime=$(date +%s)
+
+az vmss delete -g $MC_RESOURCE_GROUP_NAME -n $VMSS_NAME
+kubectl delete node $vmInstanceName
+
+waitForDeleteEndTime=$(date +%s)
+log "Waited $((waitForDeleteEndTime-waitForDeleteStartTime)) seconds to delete VMSS and node"
 
 globalEndTime=$(date +%s)
 log "Finished after $((globalEndTime-globalStartTime)) seconds"

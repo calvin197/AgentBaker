@@ -55,6 +55,7 @@ downloadGPUDrivers() {
         return
     fi
 
+    mkdir -p ${GPU_DEST}
     retrycmd_if_failure 30 5 3600 apt-get install -y linux-headers-$(uname -r) gcc make dkms || exit $ERR_GPU_DRIVERS_INSTALL_TIMEOUT
     retrycmd_if_failure 30 5 60 curl -fLS https://us.download.nvidia.com/tesla/$GPU_DV/NVIDIA-Linux-x86_64-${GPU_DV}.run -o ${GPU_DEST}/nvidia-drivers-${GPU_DV} || exit $ERR_GPU_DRIVERS_INSTALL_TIMEOUT
 }
@@ -150,6 +151,7 @@ ensureRunc() {
     if [[ -z ${TARGET_VERSION} ]]; then
         TARGET_VERSION="1.0.3"
     fi
+    CURRENT_VERSION=$(runc --version | head -n1 | sed 's/runc version //')
     if [ "${CURRENT_VERSION}" == "${TARGET_VERSION}" ]; then
         echo "target moby-runc version ${TARGET_VERSION} is already installed. skipping installRunc."
     fi
@@ -211,6 +213,20 @@ installNvidiaContainerRuntime() {
 installNvidiaDocker() {
     local target=$1
     local dst="/usr/local/nvidia/tmp"
+
+    if [ -d "$dst/pkg" ]; then
+        if [ -f "$dst/pkg/DEBIAN/control" ]; then
+            installed="$(cat "$dst/pkg/DEBIAN/control" | grep Version | cut -d' ' -f 2)"
+            if [ "$version" == "$installed" ]; then
+                echo "skip nvidia-docker2 install, current version $version matches target $target"
+            else
+                rm -rf "$dst/pkg"
+            fi
+        else
+            rm -rf "$dst/pkg"
+        fi
+    fi
+
     mkdir -p "$dst"
     pushd "$dst"
     if [ ! -f "./nvidia-docker2_${target}_all.deb" ]; then
