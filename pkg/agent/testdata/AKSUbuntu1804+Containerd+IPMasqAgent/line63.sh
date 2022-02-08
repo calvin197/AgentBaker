@@ -6,8 +6,8 @@
         "versions": [
             "1.4.9-3"
         ],
-        "latest": "1.5.5-3",
-        "stable": "1.4.9-3"
+        "latest": "1.5.9-2",
+        "stable": "1.4.12-2"
     },
     "runc": {
         "fileName": "moby-runc_${RUNC_VERSION}+azure-${RUNC_PATCH_VERSION}.deb",
