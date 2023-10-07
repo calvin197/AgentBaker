@@ -7437,6 +7437,9 @@ $global:AlwaysPullWindowsPauseImage = [System.Convert]::ToBoolean("{{GetVariable
 # Calico
 $global:WindowsCalicoPackageURL = "{{GetVariable "windowsCalicoPackageURL" }}";
 
+## GPU install
+$global:ConfigGPUDriverIfNeeded = "{{GetVariable "configGPUDriverIfNeeded"}}";
+
 # GMSA
 $global:WindowsGmsaPackageUrl = "{{GetVariable "windowsGmsaPackageUrl" }}";
 
@@ -7507,6 +7510,7 @@ try
     . c:\AzureData\windows\containerdfunc.ps1
     . c:\AzureData\windows\kubeletfunc.ps1
     . c:\AzureData\windows\kubernetesfunc.ps1
+    . c:\AzureData\windows\nvidiagpudriverfunc.ps1
 
     # Install OpenSSH if SSH enabled
     $sshEnabled = [System.Convert]::ToBoolean("{{ WindowsSSHEnabled }}")
@@ -7713,6 +7717,11 @@ try
     if ($global:WindowsCalicoPackageURL) {
         Write-Log "Start calico installation"
         Start-InstallCalico -RootDir "c:\" -KubeServiceCIDR $global:KubeServiceCIDR -KubeDnsServiceIp $KubeDnsServiceIp
+    }
+    
+    if ($global:ConfigGPUDriverIfNeeded) {
+        Write-Log "Start GPU installation"
+        Start-InstallGPUDriver
     }
 
     if (Test-Path $CacheDir)
