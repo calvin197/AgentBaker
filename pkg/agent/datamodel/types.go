@@ -497,7 +497,6 @@ type WindowsProfile struct {
 	AlwaysPullWindowsPauseImage   *bool                      `json:"alwaysPullWindowsPauseImage,omitempty"`
 	ContainerdWindowsRuntimes     *ContainerdWindowsRuntimes `json:"containerdWindowsRuntimes,omitempty"`
 	WindowsCalicoPackageURL       string                     `json:"windowsCalicoPackageURL,omitempty"`
-	ConfigGPUDriverIfNeeded       *bool                      `json:"configGPUDriverIfNeeded,omitempty"`
 	//nolint:revive, stylecheck // keep field names the same as RP
 	WindowsSecureTlsEnabled *bool `json:"windowsSecureTlsEnabled,omitempty"`
 	//nolint:revive, stylecheck // keep field names the same as RP
@@ -1283,10 +1282,6 @@ func (w *WindowsProfile) GetContainerdWindowsRuntimeHandlers() string {
 // IsAlwaysPullWindowsPauseImage returns true if the windows pause image always needs a force pull.
 func (w *WindowsProfile) IsAlwaysPullWindowsPauseImage() bool {
 	return w.AlwaysPullWindowsPauseImage != nil && *w.AlwaysPullWindowsPauseImage
-}
-
-func (w *WindowsProfile) IsConfigGPUDriverNeeded() bool {
-	return w.ConfigGPUDriverIfNeeded != nil && *w.ConfigGPUDriverIfNeeded
 }
 
 // IsWindowsSecureTLSEnabled returns true if secure TLS should be enabled for Windows nodes.
