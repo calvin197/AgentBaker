@@ -174,7 +174,7 @@ $global:AlwaysPullWindowsPauseImage = [System.Convert]::ToBoolean("true");
 $global:WindowsCalicoPackageURL = "";
 
 ## GPU install
-$global:ConfigGPUDriverIfNeeded = "";
+$global:ConfigGPUDriverIfNeeded = [System.Convert]::ToBoolean("true");
 
 # GMSA
 $global:WindowsGmsaPackageUrl = "";
