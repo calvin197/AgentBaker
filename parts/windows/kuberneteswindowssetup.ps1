@@ -464,6 +464,11 @@ try
         Start-InstallGPUDriver
     }
 
+    if ($global:ConfigGPUDriverIfNeeded) {
+        Write-Log "Start GPU installation"
+        Start-InstallGPUDriver
+    }
+
     if (Test-Path $CacheDir)
     {
         Write-Log "Removing aks-engine bits cache directory"
