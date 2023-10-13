@@ -1,4 +1,8 @@
 function Start-InstallGPUDriver {
+  $result = @{
+    RebootNeeded = $false
+  }
+
   if (-not $PSScriptRoot) {
     $PSScriptRoot = Split-Path $MyInvocation.InvocationName
   }
@@ -37,15 +41,19 @@ function Start-InstallGPUDriver {
       Wait-Process -InputObject $p -Timeout $Timeout -ErrorAction Stop
     
       # check if installation was successful
-      if ($p.ExitCode -eq 0 -or $p.ExitCode -eq 1) { # 1 is issued when reboot is required after success
-        Write-Host "Done. Code: $($p.ExitCode)"
-        # todo: need to reboot if $Reboot is true.
+      if ($p.ExitCode -eq 0 -or $p.ExitCode -eq 1) {
+        # 1 is issued when reboot is required after success
+        Write-Host "GPU Driver Installation Success. Code: $($p.ExitCode)"
       }
       else {
-        Write-Host "Failed! Code: $($p.ExitCode)"
+        Write-Host "GPU Driver Installation Failed! Code: $($p.ExitCode)"
       }
 
-      #Invoke-CustomScript.ps1 $retEnv $OpStatus $StatusFile
+      if ($Reboot.Needed -or $p.ExitCode -eq 1) {
+        Write-Host "Reboot is needed for this GPU Driver..."
+        $result.RebootNeeded = $true
+      }
+      return $result
     }
     catch [System.TimeoutException] {
       Write-Host "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
@@ -118,10 +126,12 @@ function Select-Driver {
   # Using the following instead of VM vmetadata ( $Compute.sku -match ('.*2016-Datacenter.*|.*RS.*Pro.*') ) # 2016, Win 10
   # to accomodate various image publishers and their SKUs
   $OSMajorVersion = (Get-CimInstance Win32_OperatingSystem).version.split('.')[0]
-  if ( $OSMajorVersion -eq 10 ) { # Win 2016, Win 10
+  if ( $OSMajorVersion -eq 10 ) {
+    # Win 2016, Win 10
     $Index.OSVersion = 0
   }
-  else { # ( $OSMajorVersion -eq 6 ) Win 2012 R2
+  else {
+    # ( $OSMajorVersion -eq 6 ) Win 2012 R2
     $Index.OSVersion = 1
   }  
 
@@ -136,10 +146,12 @@ function Select-Driver {
   # Not an AzureStack scenario
   if ($vmSize -ne $null) {
     if ( ($Compute.vmSize -Match "_NC") -or
-        ($Compute.vmSize -Match "_ND") ) { # Override if GRID driver is desired on ND or NC VMs
+        ($Compute.vmSize -Match "_ND") ) {
+      # Override if GRID driver is desired on ND or NC VMs
       $Index.Driver = 0 # CUDA
     }
-    elseif ( $Compute.vmSize -Match "_NV" ) { # NV or Grid on ND or Grid on NC
+    elseif ( $Compute.vmSize -Match "_NV" ) {
+      # NV or Grid on ND or Grid on NC
       $Index.Driver = 1 # GRID
       $Driver.RebootNeeded = $true
     }
@@ -166,15 +178,19 @@ function Select-Driver {
 
   # $Driver.SetupFolder is set based on OS and Driver Type
   # This cannot be made standard currently as there doesn't seem to be a way to pass the extraction/setup folder in silent mode
-  if ($Index.Driver -eq 0) { # CUDA
-    if ($Index.OSVersion -eq 0) { # Win 2016, Win 10
+  if ($Index.Driver -eq 0) {
+    # CUDA
+    if ($Index.OSVersion -eq 0) {
+      # Win 2016, Win 10
       $Driver.SetupFolder = "C:\NVIDIA\DisplayDriver\$($Driver.Version)\Win10_64\International"
     }
-    else { # Win 2012 R2
+    else {
+      # Win 2012 R2
       $Driver.SetupFolder = "C:\NVIDIA\DisplayDriver\$($Driver.Version)\Win8_Win7_64\International"
     }
   }
-  else { # GRID
+  else {
+    # GRID
     $Driver.SetupFolder = "C:\NVIDIA\$($Driver.Version)"
   }
 

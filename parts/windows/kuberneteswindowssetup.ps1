@@ -459,9 +459,14 @@ try
         Start-InstallCalico -RootDir "c:\" -KubeServiceCIDR $global:KubeServiceCIDR -KubeDnsServiceIp $KubeDnsServiceIp
     }
     
+    $RebootNeeded = $false
+
     if ($global:ConfigGPUDriverIfNeeded) {
         Write-Log "Start GPU installation"
-        Start-InstallGPUDriver
+        $result = Start-InstallGPUDriver
+        if ($result.RebootNeeded) {
+            $RebootNeeded = $true
+        }
     }
 
     if (Test-Path $CacheDir)
@@ -494,6 +499,10 @@ try
     }
     $timer.Stop()
     Write-Log -Message "We waited [$($timer.Elapsed.TotalSeconds)] seconds on NodeResetScriptTask"
+
+    if ($RebootNeeded) {
+        Postpone-RestartComputer
+    }
 }
 catch
 {
