@@ -7720,9 +7720,14 @@ try
         Start-InstallCalico -RootDir "c:\" -KubeServiceCIDR $global:KubeServiceCIDR -KubeDnsServiceIp $KubeDnsServiceIp
     }
     
+    $RebootNeeded = $false
+
     if ($global:ConfigGPUDriverIfNeeded) {
         Write-Log "Start GPU installation"
-        Start-InstallGPUDriver
+        $result = Start-InstallGPUDriver
+        if ($result.RebootNeeded) {
+            $RebootNeeded = $true
+        }
     }
 
     if (Test-Path $CacheDir)
@@ -7755,6 +7760,10 @@ try
     }
     $timer.Stop()
     Write-Log -Message "We waited [$($timer.Elapsed.TotalSeconds)] seconds on NodeResetScriptTask"
+
+    if ($RebootNeeded) {
+        Postpone-RestartComputer
+    }
 }
 catch
 {
@@ -7995,6 +8004,18 @@ function Set-ExitCode
     $global:ExitCode=$ExitCode
     $global:ErrorMessage=$ErrorMessage
     exit $ExitCode
+}
+
+function Postpone-RestartComputer 
+{
+    Write-Log "Creating an one-time task to restart the VM"
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument " -Command `+"`"+`"Restart-Computer -Force`+"`"+`""
+    $principal = New-ScheduledTaskPrincipal -UserId SYSTEM -LogonType ServiceAccount -RunLevel Highest
+    # trigger this task once
+    $trigger = New-JobTrigger -At  (Get-Date).AddSeconds(15).DateTime -Once
+    $definition = New-ScheduledTask -Action $action -Principal $principal -Trigger $trigger -Description "Restart computer after provisioning the VM"
+    Register-ScheduledTask -TaskName "restart-computer" -InputObject $definition
+    Write-Log "Created an one-time task to restart the VM"
 }
 
 function Create-Directory
