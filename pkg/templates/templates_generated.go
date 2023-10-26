@@ -7730,6 +7730,10 @@ $global:EnableHostsConfigAgent = [System.Convert]::ToBoolean("{{ EnableHostsConf
 # These scripts are used by cse
 $global:CSEScriptsPackageUrl = "{{GetVariable "windowsCSEScriptsPackageURL" }}";
 
+# These windows nvidia gpu driver are used by windows cse
+$global:GpuDriverCudaUrl = "{{GetVariable "windowsGpuDriverCudaUrl" }}";
+$global:GpuDriverGridUrl = "{{GetVariable "windowsGpuDriverGridUrl" }}";
+
 # PauseImage
 $global:WindowsPauseImageURL = "{{GetVariable "windowsPauseImageURL" }}";
 $global:AlwaysPullWindowsPauseImage = [System.Convert]::ToBoolean("{{GetVariable "alwaysPullWindowsPauseImage" }}");
@@ -7796,6 +7800,10 @@ try
         $global:CSEScriptsPackageUrl = $global:CSEScriptsPackageUrl + $WindowsCSEScriptsPackage
         Write-Log "CSEScriptsPackageUrl is set to $global:CSEScriptsPackageUrl"
     }
+
+    Write-Log "calvin: cuda gpu url is set to $global:GpuDriverCudaUrl"
+    Write-Log "calvin: grid gpu url is set to $global:GpuDriverGridUrl"
+
     # Download CSE function scripts
     Write-Log "Getting CSE scripts"
     $tempfile = 'c:\csescripts.zip'
@@ -7810,7 +7818,6 @@ try
     . c:\AzureData\windows\containerdfunc.ps1
     . c:\AzureData\windows\kubeletfunc.ps1
     . c:\AzureData\windows\kubernetesfunc.ps1
-    . c:\AzureData\windows\nvidiagpudriverfunc.ps1
 
     # Install OpenSSH if SSH enabled
     $sshEnabled = [System.Convert]::ToBoolean("{{ WindowsSSHEnabled }}")
@@ -8022,6 +8029,7 @@ try
     $RebootNeeded = $false
 
     if ($global:ConfigGPUDriverIfNeeded) {
+        . c:\AzureData\windows\nvidiagpudriverfunc.ps1
         Write-Log "Start GPU installation"
         $result = Start-InstallGPUDriver
         if ($result.RebootNeeded) {
