@@ -171,10 +171,8 @@ $global:EnableHostsConfigAgent = [System.Convert]::ToBoolean("{{ EnableHostsConf
 $global:CSEScriptsPackageUrl = "{{GetVariable "windowsCSEScriptsPackageURL" }}";
 
 # These windows nvidia gpu driver are used by windows cse
-$global:GpuDriverCuda2016Url = "{{GetVariable "windowsGpuDriverCuda2016Url" }}";
-$global:GpuDriverGrid2016Url = "{{GetVariable "windowsGpuDriverGrid2016Url" }}";
-$global:GpuDriverCuda2012Url = "{{GetVariable "windowsGpuDriverCuda2012Url" }}";
-$global:GpuDriverGrid2012Url = "{{GetVariable "windowsGpuDriverGrid2012Url" }}";
+$global:GpuDriverCudaUrl = "{{GetVariable "windowsGpuDriverCudaUrl" }}";
+$global:GpuDriverGridUrl = "{{GetVariable "windowsGpuDriverGridUrl" }}";
 
 # PauseImage
 $global:WindowsPauseImageURL = "{{GetVariable "windowsPauseImageURL" }}";
@@ -243,10 +241,8 @@ try
         Write-Log "CSEScriptsPackageUrl is set to $global:CSEScriptsPackageUrl"
     }
 
-    Write-Log "calvin: 2016 cuda gpu url is set to $global:GpuDriverCuda2016Url"
-    Write-Log "calvin: 2016 grid gpu url is set to $global:GpuDriverGrid2016Url"
-    Write-Log "calvin: 2012 cuda gpu url is set to $global:GpuDriverCuda2012Url"
-    Write-Log "calvin: 2012 grid gpu url is set to $global:GpuDriverGrid2012Url"
+    Write-Log "calvin: cuda gpu url is set to $global:GpuDriverCudaUrl"
+    Write-Log "calvin: grid gpu url is set to $global:GpuDriverGridUrl"
 
     # Download CSE function scripts
     Write-Log "Getting CSE scripts"
