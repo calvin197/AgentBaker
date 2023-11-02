@@ -5,11 +5,11 @@ function Start-InstallGPUDriver {
   )
 
   if (-not $EnableInstall) {
-    Write-Host "ConfigGPUDriverIfNeeded is false. GPU driver installation skipped as per configuration."
+    Write-Log "ConfigGPUDriverIfNeeded is false. GPU driver installation skipped as per configuration."
     return $false
   }
 
-  Write-Host "ConfigGPUDriverIfNeeded is true. GPU driver installation started as per configuration."
+  Write-Log "ConfigGPUDriverIfNeeded is true. GPU driver installation started as per configuration."
 
   $RebootNeeded = $false
 
@@ -29,18 +29,18 @@ function Start-InstallGPUDriver {
       Needed = $false
     }
 
-    Write-Host "Attempting to install Nvidia driver..."
+    Write-Log "Attempting to install Nvidia driver..."
 
     # Get the SetupTarget based on the input
     $Setup = Get-Setup
     $SetupTarget = $Setup.Target
     $Reboot.Needed = $Setup.RebootNeeded
-    Write-Host "Setup complete"
+    Write-Log "Setup complete"
 
     Add-DriverCertificate $Setup.CertificateUrl
-    Write-Host "Certificate in store"
+    Write-Log "Certificate in store"
 
-    Write-Host "Installing $SetupTarget ..."
+    Write-Log "Installing $SetupTarget ..."
     try {
       $InstallLogFolder = "$LogFolder\NvidiaInstallLog"
       $Arguments = "-s -n -log:$InstallLogFolder -loglevel:6"
@@ -53,37 +53,37 @@ function Start-InstallGPUDriver {
       # check if installation was successful
       if ($p.ExitCode -eq 0 -or $p.ExitCode -eq 1) {
         # 1 is issued when reboot is required after success
-        Write-Host "GPU Driver Installation Success. Code: $($p.ExitCode)"
+        Write-Log "GPU Driver Installation Success. Code: $($p.ExitCode)"
       }
       else {
-        Write-Host "GPU Driver Installation Failed! Code: $($p.ExitCode)"
+        Write-Log "GPU Driver Installation Failed! Code: $($p.ExitCode)"
       }
 
       if ($Reboot.Needed -or $p.ExitCode -eq 1) {
-        Write-Host "Reboot is needed for this GPU Driver..."
+        Write-Log "Reboot is needed for this GPU Driver..."
         $RebootNeeded = $true
       }
       return $RebootNeeded
     }
     catch [System.TimeoutException] {
-      Write-Host "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
+      Write-Log "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
       Stop-Process -InputObject $p
     }
     catch {
       $Message = $_.ToString()
-      Write-Host "Exception: $Message" # the status file may get over-written when the agent re-attempts this step
+      Write-Log "Exception: $Message" # the status file may get over-written when the agent re-attempts this step
       throw
     }
     
   }
   catch [NotSupportedException] {
     $Message = $_.ToString()
-    Write-Host $Message
+    Write-Log $Message
     exit 52
   }
   catch {
     $FatalError += $_
-    Write-Host -ForegroundColor Red ($_ | Out-String)
+    Write-Log ($_ | Out-String)
     exit $FatalError.Count
   }
 }
@@ -150,7 +150,7 @@ function Select-Driver {
     $vmSize = $Compute.vmSize
   }
   catch {
-    Write-Host "Failed to query the SKU information. Attempting to install the extension from customer location regardless."
+    Write-Log "Failed to query the SKU information. Attempting to install the extension from customer location regardless."
   }
 
   # Not an AzureStack scenario
@@ -255,7 +255,7 @@ function Get-DriverFile {
     $wc = New-Object System.Net.WebClient
     $start_time = Get-Date
     $wc.DownloadFile($source, $dest)
-    Write-Host "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
+    Write-Log "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
 
     # Reset Security Protocols
     [Net.ServicePointManager]::SecurityProtocol = $protocols
@@ -264,13 +264,13 @@ function Get-DriverFile {
   function GetUsingInvokeWebRequest {
     $start_time = Get-Date
     Invoke-WebRequest -Uri $source -OutFile $dest
-    Write-Host "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
+    Write-Log "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
   }
   
   # Invoke-WebRequest seems slower for large files.
   # Using System.Net/WebClient instead. Apparently wget (and csource) are aliases
 
-  Write-Host "Downloading from $source to $dest"
+  Write-Log "Downloading from $source to $dest"
 
   # Retry to overcome failure in downloading
   $Loop = $true
@@ -303,14 +303,14 @@ function Add-DriverCertificate {
 
   $Cert = Get-DriverCertificate $link
   if ( $Cert.OldObject ) {
-    Write-Host 'Certificate already in store.'
+    Write-Log 'Certificate already in store.'
   }
   else {
-    Write-Host 'Adding Certificate ...'
+    Write-Log 'Adding Certificate ...'
     $Store = Get-Item $Cert.Store
     $Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
     Import-Certificate -Filepath $Cert.File -CertStoreLocation $Cert.Store
-    Write-Host 'Certificate added.'
+    Write-Log 'Certificate added.'
     $Store.Close()
   }
 }
