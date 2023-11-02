@@ -302,17 +302,13 @@ function Add-DriverCertificate {
   )
 
   $Cert = Get-DriverCertificate $link
-  if ( $Cert.OldObject ) {
-    Write-Log 'Certificate already in store.'
-  }
-  else {
-    Write-Log 'Adding Certificate ...'
-    $Store = Get-Item $Cert.Store
-    $Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-    Import-Certificate -Filepath $Cert.File -CertStoreLocation $Cert.Store
-    Write-Log 'Certificate added.'
-    $Store.Close()
-  }
+
+  Write-Log 'Adding Certificate ...'
+  $Store = Get-Item $Cert.Store
+  $Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+  Import-Certificate -Filepath $Cert.File -CertStoreLocation $Cert.Store
+  Write-Log 'Certificate added.'
+  $Store.Close()
 }
  
 function Get-DriverCertificate {
@@ -326,22 +322,16 @@ function Get-DriverCertificate {
   $Cert = @{
     File      = "$PSScriptRoot\..\nvidia.cer"
     Store     = "Cert:\LocalMachine\TrustedPublisher\"
-    OldObject = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 #placeholder
     NewObject = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
   }
 
-  # Download the .cer file if it doesn't already exist.
-  if ( !(Test-Path -Path $Cert.File -PathType Leaf) ) {
-    $source = $link
-    $dest = $Cert.File
-    Get-DriverFile $source $dest
-  }
+  # Download the .cer file
+  $source = $link
+  $dest = $Cert.File
+  Get-DriverFile $source $dest
 
   # New Certificate object to check for properties
   $Cert.NewObject.Import($Cert.File)
-
-  # Checking for existing cert with a unique thumbprint
-  $Cert.OldObject = ( Get-ChildItem -Path $Cert.Store | Where-Object { $_.Thumbprint -Match $Cert.NewObject.Thumbprint } )
 
   return $Cert
 }
