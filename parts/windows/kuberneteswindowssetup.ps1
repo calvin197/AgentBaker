@@ -241,8 +241,8 @@ try
         Write-Log "CSEScriptsPackageUrl is set to $global:CSEScriptsPackageUrl"
     }
 
-    Write-Log "calvin: cuda gpu url is set to $global:GpuDriverCudaUrl"
-    Write-Log "calvin: grid gpu url is set to $global:GpuDriverGridUrl"
+    Write-Log "cuda gpu url is set to $global:GpuDriverCudaUrl"
+    Write-Log "grid gpu url is set to $global:GpuDriverGridUrl"
 
     # Download CSE function scripts
     Write-Log "Getting CSE scripts"
@@ -258,6 +258,7 @@ try
     . c:\AzureData\windows\containerdfunc.ps1
     . c:\AzureData\windows\kubeletfunc.ps1
     . c:\AzureData\windows\kubernetesfunc.ps1
+    . c:\AzureData\windows\nvidiagpudriverfunc.ps1
 
     # Install OpenSSH if SSH enabled
     $sshEnabled = [System.Convert]::ToBoolean("{{ WindowsSSHEnabled }}")
@@ -469,7 +470,6 @@ try
     $RebootNeeded = $false
 
     if ($global:ConfigGPUDriverIfNeeded) {
-        . c:\AzureData\windows\nvidiagpudriverfunc.ps1
         Write-Log "Start GPU installation"
         $result = Start-InstallGPUDriver
         if ($result.RebootNeeded) {
