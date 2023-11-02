@@ -267,9 +267,6 @@ function Get-DriverFile {
     # Reset Security Protocols
     [Net.ServicePointManager]::SecurityProtocol = $protocols
   }
-    
-  # Invoke-WebRequest seems slower for large files.
-  # Using System.Net/WebClient instead. Apparently wget (and csource) are aliases
 
   Write-Log "Downloading from $source to $dest"
 
