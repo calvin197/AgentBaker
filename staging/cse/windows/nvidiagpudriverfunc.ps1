@@ -56,7 +56,9 @@ function Start-InstallGPUDriver {
         Write-Log "GPU Driver Installation Success. Code: $($p.ExitCode)"
       }
       else {
-        Write-Log "GPU Driver Installation Failed! Code: $($p.ExitCode)"
+        $ErrorMsg = "GPU Driver Installation Failed! Code: $($p.ExitCode)"
+        Write-Log $ErrorMsg
+        Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_FAILED -ErrorMessage $ErrorMsg
       }
 
       if ($Reboot.Needed -or $p.ExitCode -eq 1) {
@@ -66,25 +68,24 @@ function Start-InstallGPUDriver {
       return $RebootNeeded
     }
     catch [System.TimeoutException] {
-      Write-Log "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
-      Stop-Process -InputObject $p
+      $ErrorMsg = "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
+      Write-Log $ErrorMsg
+      Stop-Process -InputObject $p -Force
+      Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_TIMEOUT -ErrorMessage $ErrorMsg
     }
     catch {
-      $Message = $_.ToString()
-      Write-Log "Exception: $Message" # the status file may get over-written when the agent re-attempts this step
-      throw
+      $ErrorMsg = "Exception: $($_.ToString())"
+      Write-Log $ErrorMsg # the status file may get over-written when the agent re-attempts this step
+      Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_FAILED -ErrorMessage $ErrorMsg
     }
     
   }
-  catch [NotSupportedException] {
-    $Message = $_.ToString()
-    Write-Log $Message
-    exit 52
-  }
   catch {
     $FatalError += $_
-    Write-Log ($_ | Out-String)
-    exit $FatalError.Count
+    $errorCount = $FatalError.Count
+    $ErrorMsg = "A fatal error occurred. Number of errors: $errorCount. Error details: $($_ | Out-String)"
+    Write-Log $ErrorMsg
+    Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_FAILED -ErrorMessage $ErrorMsg
   }
 }
 
@@ -95,8 +96,9 @@ function Get-Setup {
   $Driver = Select-Driver
     
   if ($Driver.Url -eq $null -or $Driver.CertificateUrl -eq $null) {
-    $Message = "DriverURL or DriverCertificateURL are not properly specified."
-    throw $Message
+    $ErrorMsg = "DriverURL or DriverCertificateURL are not properly specified."
+    Write-Log $ErrorMsg
+    Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_URL_NOT_SET -ErrorMessage $ErrorMsg
   }
     
   $Setup = @{
@@ -150,7 +152,9 @@ function Select-Driver {
     $vmSize = $Compute.vmSize
   }
   catch {
-    Write-Log "Failed to query the SKU information. Attempting to install the extension from customer location regardless."
+    $ErrorMsg = "Failed to query the SKU information."
+    Write-Log $ErrorMsg
+    Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_SKU_INFO_NOT_FOUND -ErrorMessage $ErrorMsg
   }
 
   # Not an AzureStack scenario
@@ -166,7 +170,8 @@ function Select-Driver {
       $Driver.RebootNeeded = $true
     }
     else {
-      throw [NotSupportedException] "VM type $($Compute.vmSize) is not an N-series VM. Not attempting to deploy extension! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+      $ErrorMsg = "VM type $($Compute.vmSize) is not an N-series VM. Not attempting to deploy extension! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+      Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_VM_SIZE_NOT_SUPPORTED -ErrorMessage $ErrorMsg
     }
   }
 
@@ -223,7 +228,9 @@ function Get-VmData {
     catch {
       if ($RetryCount -gt $RetryCountMax) {
         $Loop = $false
-        throw [NotSupportedException] "Failed to retrieve VM metadata after $RetryCountMax attempts. Exiting! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+        $ErrorMsg = "Failed to retrieve VM metadata after $RetryCountMax attempts. Exiting! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+        Write-Log $ErrorMsg
+        Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_SKU_INFO_NOT_FOUND -ErrorMessage $ErrorMsg
       }
       else {
         Start-Sleep -Seconds ($RetryCount * 2 + 1)
@@ -260,13 +267,7 @@ function Get-DriverFile {
     # Reset Security Protocols
     [Net.ServicePointManager]::SecurityProtocol = $protocols
   }
-  
-  function GetUsingInvokeWebRequest {
-    $start_time = Get-Date
-    Invoke-WebRequest -Uri $source -OutFile $dest
-    Write-Log "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
-  }
-  
+    
   # Invoke-WebRequest seems slower for large files.
   # Using System.Net/WebClient instead. Apparently wget (and csource) are aliases
 
@@ -284,7 +285,9 @@ function Get-DriverFile {
     catch {
       if ($RetryCount -gt $RetryCountMax) {
         $Loop = $false
-        throw [NotSupportedException] "Failed to download $source after $RetryCountMax attempts. Exiting! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+        $ErrorMsg = "Failed to download $source after $RetryCountMax attempts. Exiting! More information on troubleshooting is available at https://aka.ms/NvidiaGpuDriverWindowsExtensionTroubleshoot"
+        Write-Log $ErrorMsg
+        Set-ExitCode -ExitCode $global:WINDOWS_CSE_ERROR_GPU_DRIVER_INSTALLATION_DOWNLOAD_FAILURE -ErrorMessage $ErrorMsg
       }
       else {
         Start-Sleep -Seconds ($RetryCount * 2 + 1)
