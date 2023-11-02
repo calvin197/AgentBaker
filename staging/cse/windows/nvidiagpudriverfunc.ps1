@@ -1,7 +1,17 @@
 function Start-InstallGPUDriver {
-  $result = @{
-    RebootNeeded = $false
+  param(
+    [Parameter(Mandatory = $false)]
+    [bool]$EnableInstall
+  )
+
+  if (-not $EnableInstall) {
+    Write-Host "ConfigGPUDriverIfNeeded is false. GPU driver installation skipped as per configuration."
+    return $false
   }
+
+  Write-Host "ConfigGPUDriverIfNeeded is true. GPU driver installation started as per configuration."
+
+  $RebootNeeded = $false
 
   if (-not $PSScriptRoot) {
     $PSScriptRoot = Split-Path $MyInvocation.InvocationName
@@ -51,9 +61,9 @@ function Start-InstallGPUDriver {
 
       if ($Reboot.Needed -or $p.ExitCode -eq 1) {
         Write-Host "Reboot is needed for this GPU Driver..."
-        $result.RebootNeeded = $true
+        $RebootNeeded = $true
       }
-      return $result
+      return $RebootNeeded
     }
     catch [System.TimeoutException] {
       Write-Host "Timeout $Timeout s exceeded. Stopping the installation process. Reboot for another attempt."
