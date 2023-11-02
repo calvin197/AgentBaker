@@ -306,7 +306,29 @@ function Add-DriverCertificate {
   Write-Log 'Adding Certificate ...'
   $Store = Get-Item $Cert.Store
   $Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-  Import-Certificate -Filepath $Cert.File -CertStoreLocation $Cert.Store
+  $ImportedCert = Import-Certificate -Filepath $Cert.File -CertStoreLocation $Cert.Store
+  $CertInStore = $Store.Certificates | Where-Object { $_.Thumbprint -eq $ImportedCert.Thumbprint }
+
+  if ($CertInStore) {
+    # Perform additional validation checks on the certificate
+    if ($CertInStore.NotAfter -gt (Get-Date)) {
+      Write-Log 'Certificate is valid and has not expired.'
+    }
+    else {
+      Write-Log 'Certificate has expired.'
+    }
+
+    # Check if the certificate is trusted
+    if ($CertInStore.Verify()) {
+      Write-Log 'Certificate is trusted.'
+    }
+    else {
+      Write-Log 'Certificate is not trusted.'
+    }
+  }
+  else {
+    Write-Log 'Certificate is not valid.'
+  }
   Write-Log 'Certificate added.'
   $Store.Close()
 }
